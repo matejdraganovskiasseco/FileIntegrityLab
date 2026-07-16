@@ -12,10 +12,21 @@ var authenticationServie = new AuthenticationService(configuration);
 var graphclient = authenticationServie.GetGraphServiceClient();
 
 var oneDriveService = new OneDriveService(graphclient);
-
 await oneDriveService.DriveInfoAsync();
 
 var user = await graphclient.Me.GetAsync();
 
 Console.WriteLine($"Signed in as: {user?.DisplayName}");
 Console.WriteLine($"Email: {user?.Mail}");
+
+var folder = await oneDriveService.CreateFolderAsync();
+
+var testFile = Path.Combine(
+    Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
+    "TestFiles",
+    "sample.txt");
+
+var uploadedFile = await oneDriveService.UploadFileAsync(testFile, folder.Id!);
+
+Console.WriteLine($"Uploaded: {uploadedFile?.Name}");
+Console.WriteLine($"File Id : {uploadedFile?.Id}");
