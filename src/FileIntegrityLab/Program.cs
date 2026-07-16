@@ -1,4 +1,5 @@
-﻿using FileIntegrityLab.Services;
+﻿using FileIntegrity.Services;
+using FileIntegrityLab.Services;
 using Microsoft.Extensions.Configuration;
 
 var configuration = new ConfigurationBuilder()
@@ -9,6 +10,10 @@ var configuration = new ConfigurationBuilder()
 var authenticationServie = new AuthenticationService(configuration);
 
 var graphclient = authenticationServie.GetGraphServiceClient();
+
+var oneDriveService = new OneDriveService(graphclient);
+
+await oneDriveService.DriveInfoAsync();
 
 var user = await graphclient.Me.GetAsync();
 
