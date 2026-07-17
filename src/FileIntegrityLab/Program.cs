@@ -30,3 +30,11 @@ var uploadedFile = await oneDriveService.UploadFileAsync(testFile, folder.Id!);
 
 Console.WriteLine($"Uploaded: {uploadedFile?.Name}");
 Console.WriteLine($"File Id : {uploadedFile?.Id}");
+
+var downloadedFile = Path.Combine(
+    @"C:\projects\FileIntegrityLab\DownloadedFiles",
+    uploadedFile!.Name!);
+
+await oneDriveService.DownloadFileAsync(
+    uploadedFile.Id!,
+    downloadedFile);

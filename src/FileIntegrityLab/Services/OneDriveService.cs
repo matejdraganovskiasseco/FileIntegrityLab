@@ -85,5 +85,27 @@ namespace FileIntegrity.Services
 
             return null;
         }
+
+        public async Task DownloadFileAsync(string fileId, string destionationPath)
+        {
+            var drive = await _graphClient.Me.Drive.GetAsync();
+
+            var stream = await _graphClient
+                .Drives[drive!.Id!]
+                .Items[fileId]
+                .Content
+                .GetAsync();
+
+            if(stream == null)
+            {
+                throw new InvalidOperationException("unable to download file");
+            }
+
+            using var filestream = File.Create(destionationPath);
+
+            await stream.CopyToAsync(filestream);
+
+            Console.WriteLine("file downloaded successfully");
+        }
     }
 }
