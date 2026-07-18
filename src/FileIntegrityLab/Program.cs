@@ -38,3 +38,16 @@ var downloadedFile = Path.Combine(
 await oneDriveService.DownloadFileAsync(
     uploadedFile.Id!,
     downloadedFile);
+
+var hashService = new HashService();
+
+var originalHash = hashService.ComputeHash(testFile);
+var downloadedHash = hashService.ComputeHash(downloadedFile);
+
+Console.WriteLine($"Original Hash: {originalHash} From the file: {testFile}");
+Console.WriteLine($"Downloaded Hash: {downloadedHash} From the file: {downloadedFile}");
+
+bool integrity = originalHash == downloadedHash;
+
+Console.WriteLine($"Integrity Verified: {(integrity ? "yes" : "no")}");
+
