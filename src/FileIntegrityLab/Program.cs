@@ -7,6 +7,11 @@ var configuration = new ConfigurationBuilder()
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .Build();
 
+var oneDriveFolder = configuration["OneDrive:FolderName"]!;
+var testFolder = configuration["Paths:TestFilesFolder"]!;
+var downloadFolder = configuration["Paths:DownloadedFilesFolder"]!;
+var sampleFile = configuration["Paths:SampleFile"]!;
+
 var authenticationServie = new AuthenticationService(configuration);
 
 var graphclient = authenticationServie.GetGraphServiceClient();
@@ -19,7 +24,7 @@ var user = await graphclient.Me.GetAsync();
 Console.WriteLine($"Signed in as: {user?.DisplayName}");
 Console.WriteLine($"Email: {user?.Mail}");
 
-var folder = await oneDriveService.GetOrCreateFolderAsync(configuration["OneDrive:FolderName"]!);
+var folder = await oneDriveService.GetOrCreateFolderAsync(oneDriveFolder!);
 
 var projectRoot = Directory.GetParent(AppContext.BaseDirectory)!
     .Parent!
@@ -29,8 +34,8 @@ var projectRoot = Directory.GetParent(AppContext.BaseDirectory)!
 
 var testFile = Path.Combine(
     projectRoot,
-    configuration["Paths:TestFilesFolder"]!,
-    configuration["Paths:SampleFile"]!);
+    testFolder!,
+    sampleFile!);
 
 var uploadedFile = await oneDriveService.UploadFileAsync(testFile, folder.Id!);
 
@@ -39,7 +44,7 @@ Console.WriteLine($"File Id : {uploadedFile?.Id}");
 
 var downloadedFolder = Path.Combine(
     projectRoot,
-    configuration["Paths:DownloadedFilesFolder"]!);
+    downloadFolder!);
 
 Directory.CreateDirectory(downloadedFolder);
 
@@ -63,12 +68,8 @@ var result = new ExperimentResult
     FileName = uploadedFile.Name!,
     OriginalHash = originalHash,
     DownloadedHash = downloadedHash,
-    IntegrityVerified = integrity,
-    DateUploaded = DateTime.UtcNow,
-    DateDownloaded = DateTime.UtcNow
+    IntegrityVerified = integrity
 };
 
-Console.WriteLine($"Original Hash: {result.OriginalHash} From the file: {result.FileName}");
-Console.WriteLine($"Downloaded Hash: {result.DownloadedHash} From the file: {result.FileName}");
-
-Console.WriteLine($"Integrity Verified: {(result.IntegrityVerified ? "yes" : "no")}");
+var reportService = new ReportService();
+reportService.PrintReport(result);
