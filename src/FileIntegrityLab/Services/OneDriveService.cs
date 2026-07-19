@@ -22,21 +22,40 @@ namespace FileIntegrity.Services
             Console.WriteLine($"Drive Id : {drive?.Id}");
         }
 
-        public async Task<DriveItem> CreateFolderAsync()
+        public async Task<DriveItem> GetOrCreateFolderAsync(string folderName)
         {
             var drive = await _graphClient.Me.Drive.GetAsync();
 
+            var children = await _graphClient
+                .Drives[drive!.Id!]
+                .Items["root"]
+                .Children
+                .GetAsync();
+
+            var existingFolder = children?.Value?
+                .FirstOrDefault(item =>
+                    item.Folder != null &&
+                    item.Name == folderName);
+
+            if (existingFolder != null)
+            {
+                Console.WriteLine($"Using existing folder: {folderName}");
+                return existingFolder;
+            }
+
             var folder = new DriveItem
             {
-                Name = "FileIntegrityLab",
+                Name = folderName,
                 Folder = new Folder()
             };
 
             var createdFolder = await _graphClient
-                .Drives[drive!.Id!]
+                .Drives[drive.Id!]
                 .Items["root"]
                 .Children
                 .PostAsync(folder);
+
+            Console.WriteLine($"Created folder: {folderName}");
 
             return createdFolder!;
         }

@@ -19,7 +19,7 @@ var user = await graphclient.Me.GetAsync();
 Console.WriteLine($"Signed in as: {user?.DisplayName}");
 Console.WriteLine($"Email: {user?.Mail}");
 
-var folder = await oneDriveService.CreateFolderAsync();
+var folder = await oneDriveService.GetOrCreateFolderAsync(configuration["OneDrive:FolderName"]!);
 
 var projectRoot = Directory.GetParent(AppContext.BaseDirectory)!
     .Parent!
