@@ -21,18 +21,30 @@ Console.WriteLine($"Email: {user?.Mail}");
 
 var folder = await oneDriveService.CreateFolderAsync();
 
+var projectRoot = Directory.GetParent(AppContext.BaseDirectory)!
+    .Parent!
+    .Parent!
+    .Parent!
+    .FullName;
+
 var testFile = Path.Combine(
-    Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName,
-    "TestFiles",
-    "sample.txt");
+    projectRoot,
+    configuration["Paths:TestFilesFolder"]!,
+    configuration["Paths:SampleFile"]!);
 
 var uploadedFile = await oneDriveService.UploadFileAsync(testFile, folder.Id!);
 
 Console.WriteLine($"Uploaded: {uploadedFile?.Name}");
 Console.WriteLine($"File Id : {uploadedFile?.Id}");
 
+var downloadedFolder = Path.Combine(
+    projectRoot,
+    configuration["Paths:DownloadedFilesFolder"]!);
+
+Directory.CreateDirectory(downloadedFolder);
+
 var downloadedFile = Path.Combine(
-    @"C:\projects\FileIntegrityLab\DownloadedFiles",
+    downloadedFolder,
     uploadedFile!.Name!);
 
 await oneDriveService.DownloadFileAsync(
@@ -44,10 +56,19 @@ var hashService = new HashService();
 var originalHash = hashService.ComputeHash(testFile);
 var downloadedHash = hashService.ComputeHash(downloadedFile);
 
-Console.WriteLine($"Original Hash: {originalHash} From the file: {testFile}");
-Console.WriteLine($"Downloaded Hash: {downloadedHash} From the file: {downloadedFile}");
-
 bool integrity = originalHash == downloadedHash;
 
-Console.WriteLine($"Integrity Verified: {(integrity ? "yes" : "no")}");
+var result = new ExperimentResult
+{
+    FileName = uploadedFile.Name!,
+    OriginalHash = originalHash,
+    DownloadedHash = downloadedHash,
+    IntegrityVerified = integrity,
+    DateUploaded = DateTime.UtcNow,
+    DateDownloaded = DateTime.UtcNow
+};
 
+Console.WriteLine($"Original Hash: {result.OriginalHash} From the file: {result.FileName}");
+Console.WriteLine($"Downloaded Hash: {result.DownloadedHash} From the file: {result.FileName}");
+
+Console.WriteLine($"Integrity Verified: {(result.IntegrityVerified ? "yes" : "no")}");
